@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Camera Test</title>
+    <script src="enchant.js"></script>
+    <style>
+      body {
+          margin: 0;
+          padding: 0;
+      }
+      #camera {
+        position: absolute; 
+        top:0; 
+        width: 100%; 
+        height: 100%; 
+        margin: auto;
+        background: #000; 
+        z-index: 0;
+      }
+      #enchant-stage {
+        z-index: 1;
+      }
+      #picture, a{
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <video id="camera" style="transform: scaleX(-1);"></video>
+    <canvas id="picture"></canvas>
+    <a id="download" href="#" download="canvas.jpg"></a>
+    <script>
+      enchant();
+      window.onload = () => {
+        const CAMERA_X = 640;
+        const CAMERA_Y = 480;
+        const DISPLAY_X = 1920;
+        const DISPLAY_Y = 1080;
+
+        const video  = document.getElementById("camera");
+        const canvas = document.getElementById("picture");
+        const download = document.getElementById("download");
+        
+        video.width = CAMERA_X;
+        video.height = CAMERA_Y;
+        canvas.width = CAMERA_X;
+        canvas.height = CAMERA_Y;
+
+        const constraints = {
+          audio: false,
+          video: {
+            width: 640,
+            height: 480,
+            facingMode: "user"
+          }
+        };
+
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then( (stream) => {
+          video.srcObject = stream;
+          video.onloadedmetadata = (e) => {
+            video.play();
+          };
+        })
+        .catch((err) => {
+          console.log(err.name + ": " + err.message);
+        });
+
+        var core = new Core(DISPLAY_X, DISPLAY_Y);
+        core.fps = 24;
+        core.keybind(13, "a");
+        core.preload("facemark.png");
+        var aButtonFlag = true;
+        core.onload = function () {
+          core.rootScene.backgroundColor = "transparent";
+          const mask = new Sprite(core.width, core.height);
+          mask.x = 0;
+          mask.y = 0;
+          mask.image = core.assets["facemark.png"];
+          core.rootScene.addChild(mask);
+          core.addEventListener(Event.ENTER_FRAME, function(){
+            if (core.input.a) {
+              if (aButtonFlag) {
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                download.click();
+                aButtonFlag = false;
+              }
+            }
+            else{
+              aButtonFlag = true;
+            }
+          });
+        }
+        download.onclick = () => {
+          console.log("move");
+          var base64 = canvas.toDataURL("image/jpeg");
+          download.href = base64;
+          download.download = `init.jpg`;
+        }
+        core.start();
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Camera Test</title>
+    <script src="enchant.js"></script>
+    <style>
+      body {
+          margin: 0;
+          padding: 0;
+      }
+      #picture, video, a{
+        display: none;
+      }
+      #enchant-stage {
+        position: absolute;
+        top: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <video id="camera"></video>
+    <canvas id="picture"></canvas>
+    <a id="download" href="#" download="canvas.jpg"></a>
+    <script>
+      enchant();
+      window.onload = () => {
+        const CAMERA_X = 640;
+        const CAMERA_Y = 480;
+        const DISPLAY_X = 1920;
+        const DISPLAY_Y = 1080;
+
+        const video  = document.getElementById("camera");
+        const canvas = document.getElementById("picture");
+        const download = document.getElementById("download");
+        
+        video.width = CAMERA_X;
+        video.height = CAMERA_Y;
+        canvas.width = CAMERA_X;
+        canvas.height = CAMERA_Y;
+
+        const constraints = {
+          audio: false,
+          video: {
+            width: 640,
+            height: 480,
+            facingMode: "user"
+          }
+        };
+
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then( (stream) => {
+          video.srcObject = stream;
+          video.onloadedmetadata = (e) => {
+            video.play();
+          };
+        })
+        .catch((err) => {
+          console.log(err.name + ": " + err.message);
+        });
+
+        var core = new Core(DISPLAY_X, DISPLAY_Y);
+        core.fps = 24;
+        core.keybind(13, "a");
+        core.preload("point.png");
+
+        var scl = Math.min(window.innerWidth / core.width, window.innerHeight / core.height);
+        core.scale = scl;
+        var left = ( window.innerWidth - ( core.width * core.scale ) ) / 2;
+        var enchantStage = document.getElementById('enchant-stage');
+        enchantStage.style.left = left + "px";
+
+        const positionlist_init = [
+          [-10, -10],
+          [10, 10],
+          [90, 10],
+          [90, 90],
+          [10, 90],
+        ];
+        const positionlist_test = [
+          [10, 10], [30, 10], [50, 10], [70, 10], [90, 10],
+          [90, 30], [70, 30], [50, 30], [30, 30], [10, 30],
+          [10, 50], [30, 50], [50, 50], [70, 50], [90, 50],
+          [90, 70], [70, 70], [50, 70], [30, 70], [10, 70],
+          [10, 90], [30, 90], [50, 90], [70, 90], [90, 90],
+        ];
+        // const isInit = confirm("カメラ初期化ですか？");
+        // const selectlist = isInit ? positionlist_init : positionlist_test;
+        const selectlist = positionlist_test;
+        const positionlist = selectlist.map(xy => [core.width / 100 * xy[0], core.height / 100 * xy[1]]);
+        var pointcount = 0;
+        var aButtonFlag = true;
+        core.onload = function () {
+          core.rootScene.backgroundColor = "#000";
+          var point = new Sprite(100, 100);
+          point.x = positionlist[0][0] - point.width / 2;
+          point.y = positionlist[0][1] - point.height / 2;
+          point.scaleX = 0.1;
+          point.scaleY = 0.1;
+          point.image = core.assets["point.png"];
+          core.rootScene.addChild(point);
+          core.addEventListener(Event.ENTER_FRAME, function(){
+            if (core.input.a) {
+              if (aButtonFlag) {
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                download.click();
+                pointcount++;
+                point.x = positionlist[pointcount][0] - point.width / 2;
+                point.y = positionlist[pointcount][1] - point.height / 2;
+                aButtonFlag = false;
+              }
+            }
+            else{
+              aButtonFlag = true;
+            }
+          });
+        }
+        download.onclick = () => {
+          console.log("move");
+          var base64 = canvas.toDataURL("image/jpeg");
+          download.href = base64;
+          // download.download = `${isInit ? "init" : "test"}_${selectlist[pointcount].join("_")}.jpg`;
+          download.download = `test_${selectlist[pointcount].join("_")}.jpg`;
+        }
+        core.start();
+      };
+    </script>
+  </body>
+</html>

@@ -11,14 +11,20 @@
       }
       #camera {
         position: absolute; 
-        top:0; 
-        width: 100%; 
-        height: 100%; 
-        margin: auto;
+        top: 0;
+        width: 100%;
         background: #000; 
         z-index: 0;
+        transform: scaleX(-1);
+      }
+      #camera:before {
+        content:"";
+        display: block;
+        padding-top: 75%; /* 高さを幅の75%に固定 */
       }
       #enchant-stage {
+        position: absolute;
+        top: 0px;
         z-index: 1;
       }
       #picture, a{
@@ -27,7 +33,7 @@
     </style>
   </head>
   <body>
-    <video id="camera" style="transform: scaleX(-1);"></video>
+    <video id="camera"></video>
     <canvas id="picture"></canvas>
     <a id="download" href="#" download="canvas.jpg"></a>
     <script>
@@ -42,8 +48,8 @@
         const canvas = document.getElementById("picture");
         const download = document.getElementById("download");
         
-        video.width = CAMERA_X;
-        video.height = CAMERA_Y;
+        // video.width = CAMERA_X;
+        // video.height = CAMERA_Y;
         canvas.width = CAMERA_X;
         canvas.height = CAMERA_Y;
 
@@ -71,6 +77,15 @@
         core.fps = 24;
         core.keybind(13, "a");
         core.preload("facemark.png");
+
+        var scl = Math.min(window.innerWidth / core.width, window.innerHeight / core.height);
+        core.scale = scl;
+        var wdh = core.width * core.scale;
+        var left = (window.innerWidth - wdh) / 2;
+        var enchantStage = document.getElementById('enchant-stage');
+        enchantStage.style.left = left + "px";
+        video.style.height = core.height * core.scale + "px";
+        
         var aButtonFlag = true;
         core.onload = function () {
           core.rootScene.backgroundColor = "transparent";

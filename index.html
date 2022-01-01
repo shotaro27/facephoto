@@ -25,6 +25,7 @@
     <script>
       enchant();
       window.onload = () => {
+        //カメラサイズ変更したくなったらここ（ディスプレイサイズは変更しなくていい）
         const CAMERA_X = 640;
         const CAMERA_Y = 480;
         const DISPLAY_X = 1920;
@@ -42,12 +43,13 @@
         const constraints = {
           audio: false,
           video: {
-            width: 640,
-            height: 480,
+            width: CAMERA_X,
+            height: CAMERA_Y,
             facingMode: "user"
           }
         };
 
+        //videoをカメラと連動
         navigator.mediaDevices.getUserMedia(constraints)
         .then( (stream) => {
           video.srcObject = stream;
@@ -61,32 +63,25 @@
 
         var core = new Core(DISPLAY_X, DISPLAY_Y);
         core.fps = 24;
-        core.keybind(13, "a");
+        core.keybind(13, "a"); //Enterキーをaボタンとして登録
         core.preload("point.png");
 
+        //中央上合わせ
         var scl = Math.min(window.innerWidth / core.width, window.innerHeight / core.height);
         core.scale = scl;
         var left = ( window.innerWidth - ( core.width * core.scale ) ) / 2;
         var enchantStage = document.getElementById('enchant-stage');
         enchantStage.style.left = left + "px";
-
-        const positionlist_init = [
-          [-10, -10],
-          [10, 10],
-          [90, 10],
-          [90, 90],
-          [10, 90],
-        ];
-        const positionlist_test = [
+        
+        //点の座標
+        const selectlist = [
           [10, 10], [30, 10], [50, 10], [70, 10], [90, 10],
           [90, 30], [70, 30], [50, 30], [30, 30], [10, 30],
           [10, 50], [30, 50], [50, 50], [70, 50], [90, 50],
           [90, 70], [70, 70], [50, 70], [30, 70], [10, 70],
           [10, 90], [30, 90], [50, 90], [70, 90], [90, 90],
         ];
-        // const isInit = confirm("カメラ初期化ですか？");
-        // const selectlist = isInit ? positionlist_init : positionlist_test;
-        const selectlist = positionlist_test;
+
         const positionlist = selectlist.map(xy => [core.width / 100 * xy[0], core.height / 100 * xy[1]]);
         var pointcount = 0;
         var aButtonFlag = true;
@@ -100,7 +95,7 @@
           point.image = core.assets["point.png"];
           core.rootScene.addChild(point);
           core.addEventListener(Event.ENTER_FRAME, function(){
-            if (core.input.a) {
+            if (core.input.a) { //aボタン(Enterキー)が押されたときの処理
               if (aButtonFlag) {
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);

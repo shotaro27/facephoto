@@ -39,6 +39,7 @@
     <script>
       enchant();
       window.onload = () => {
+        //カメラサイズ変更したくなったらここ（ディスプレイサイズは変更しなくていい）
         const CAMERA_X = 640;
         const CAMERA_Y = 480;
         const DISPLAY_X = 1920;
@@ -56,12 +57,13 @@
         const constraints = {
           audio: false,
           video: {
-            width: 640,
-            height: 480,
+            width: CAMERA_X,
+            height: CAMERA_Y,
             facingMode: "user"
           }
         };
 
+        //videoをカメラと連動
         navigator.mediaDevices.getUserMedia(constraints)
         .then( (stream) => {
           video.srcObject = stream;
@@ -75,9 +77,10 @@
 
         var core = new Core(DISPLAY_X, DISPLAY_Y);
         core.fps = 24;
-        core.keybind(13, "a");
+        core.keybind(13, "a"); //Enterキーをaボタンとして登録
         core.preload("facemark.png");
 
+        //中央上合わせ
         var scl = Math.min(window.innerWidth / core.width, window.innerHeight / core.height);
         core.scale = scl;
         var wdh = core.width * core.scale;
@@ -95,7 +98,7 @@
           mask.image = core.assets["facemark.png"];
           core.rootScene.addChild(mask);
           core.addEventListener(Event.ENTER_FRAME, function(){
-            if (core.input.a) {
+            if (core.input.a) { //aボタン(Enterキー)が押されたときの処理
               if (aButtonFlag) {
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
